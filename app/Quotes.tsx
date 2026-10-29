@@ -62,7 +62,7 @@ export default function Quotes() {
                 <div key={id}>
                     Offering {interestRate}% by {lender}
                 </div>
-            )): 'There are no quotes'}
+            )) : 'There are no quotes'}
         </div>
     )
 }
