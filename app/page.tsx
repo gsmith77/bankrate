@@ -10,14 +10,14 @@ const SWITCHBACK_TENANT = 'switchback'
 type GlobalState = {
   apiKey: string;
   tenant: string;
-  backgroundColor: string;
   tenantDisplayName: string;
   tenantIcon: string;
-  stylesByTenant: {
+}
+
+type StylesByTenant = {
+  [key as string]: {
     [key as string]: {
-      [key as string]: {
-        backgroundColor: string;
-      }
+      backgroundColor: string;
     }
   }
 }
@@ -25,22 +25,23 @@ type GlobalState = {
 export const globalState: GlobalState = {
   apiKey: 'qw90ulkfaslkjdf983r',
   tenant: SWITCHBACK_TENANT,
-  backgroundColor: '#000',
   tenantDisplayName: 'Switchback',
-  tenantIcon: 'Briefcase',
-  stylesByTenant: {
-    tenant0: {
-      home: {
-        backgroundColor: 'red'
-      }
-    },
-    [SWITCHBACK_TENANT]: {
-      home: {
-        backgroundColor: 'blue'
-      }
+  tenantIcon: 'Briefcase'
+}
+
+export const stylesByTenant: StylesByTenant = {
+  tenant0: {
+    home: {
+      backgroundColor: 'red'
+    }
+  },
+  [SWITCHBACK_TENANT]: {
+    home: {
+      backgroundColor: 'blue'
     }
   }
 }
+
 
 export function setGlobalState(state: GlobalState) {
   Object.keys(state).forEach((key: string) => {
@@ -51,7 +52,7 @@ export function setGlobalState(state: GlobalState) {
 // Node.js backend resolver code to handle fetchPersonalizationAppDetails query
 function handlePersonalizationByTenant(request) {
   // baseurl/v1/personalize
-  const { tenant } = request.params;
+  const { tenant } = request.headers;
   // This will allow for us to get the quotes by tenant and allow for creating rates 
   // by tenant without quotes ever bleeding into other tenant's quotes response.
   const [personalizationDetails] = `SELECT * FROM personalize WHERE tenant = ${tenant}`;
@@ -77,7 +78,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [tenantNotConfigured, setTenantNotConfigured] = useState(false);
 
-  const styles = globalState.tenant ? globalState.stylesByTenant[globalState.tenant] : {}
+  const styles = globalState.tenant ? stylesByTenant[globalState.tenant] : {}
 
   useEffect(() => {
     async function fetchPersonalizationAppDetails() {
@@ -89,11 +90,12 @@ export default function Home() {
           data = {
             tenant: SWITCHBACK_TENANT, tenantDisplayName: SWITCHBACK_TENANT, tenantIcon: 'Briefcase'
           }
-        } = fetch(`baseurl/v1/personalize/${params.tenant}`, {
-          method: 'POST',
+        } = fetch('baseurl/v1/personalize/', {
+          method: 'GET',
           headers: {
-            "Authorization": `Bearer ${globalState.apiKey}`
-          }
+            "Authorization": `Bearer ${globalState.apiKey}`,
+            tenant: params.tenant
+          },
         })
         const { tenant, tenantDisplayName, tenantIcon } = data
         setGlobalState({ tenant, tenantDisplayName, tenantIcon })
