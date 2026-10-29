@@ -112,7 +112,7 @@ export default function Home() {
     return <div>Loading...</div>
   }
 
-  if (!tenantNotConfigured) {
+  if (tenantNotConfigured) {
     return <div>Tenant has not been configured. Please come back once it has</div>
   }
 
